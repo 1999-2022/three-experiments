@@ -9,7 +9,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 const canvas = document.querySelector('canvas.scene0')
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(0xffffff)
+scene.background = new THREE.Color(0xff0000)
 const size = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -64,31 +64,15 @@ window.addEventListener('resize', () => {
  */
 
 const bigRoom = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(5, 5, 5),
+    new THREE.BoxBufferGeometry(5, 5, 5, 10, 5, 5),
     new THREE.MeshBasicMaterial({
-        wireframe: false,
+        wireframe: true,
         side: THREE.DoubleSide,
-        color: 0xff0000
+        color: 0xffffff
     })
 )
 
-fontLoader.load("fonts/helvetiker_regular.typeface.json",
-    (font) => {
-        const geometry = new THREE.TextGeometry("Hi", {
-            font: font,
-            size: 0.75,
-            height: 0.5
-        })
-        geometry.scale(1, 1, 0.1)
-        const material = new THREE.MeshBasicMaterial({
-            color: 0x000000,
-            wireframe: false
-        })
-        const mesh = new THREE.Mesh(geometry, material)
-        scene.add(mesh)
-        mesh.position.set(-0.35, -0.35, 0)
-    }
-)
+
 
 scene.add(bigRoom)
 
@@ -98,8 +82,6 @@ scene.add(bigRoom)
 // const clock = new THREE.Clock()
 const tick = () => {
     // const elapsedTime = clock.getElapsedTime()
-
-    cameras[0].rotation.z += 1
 
     controls.update()
     renderer.render(scene, cameras[0])
