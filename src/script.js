@@ -85,66 +85,61 @@ const bigRooms = [
 ]
 bigRooms.forEach((mesh) => scenes[0].add(mesh))
 
+const tetraGeo = new THREE.DodecahedronBufferGeometry(3, 0)
+const tetraMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true
+})
+const tetraMesh = new THREE.Mesh(tetraGeo, tetraMat)
+
+tetraMesh.position.y = 15
+tetraMesh.position.x = 3
+
+scenes[0].add(tetraMesh)
+
 /**
  * Animations
  */
 
-const boxUpProps = {
+// const positions = {
+//     x: 0,
+//     y: 0,
+//     z: 0
+// }
+
+const camUpProps = {
     position: {
-        duration: 250,
-        from: bigRooms[0].position,
-        to: { y: -1 },
-        ease: TWEEN.Easing.Linear.None
+        duration: 3250,
+        from: cameras[0].position,
+        to: {   x: -2.8627576758033344, 
+                y: -0.37053609774711294, 
+                z: 9.725940648075916 
+            },
+        ease: TWEEN.Easing.Quartic.InOut
+    },
+    rotation: {
+        duration: 3250,
+        from: cameras[0].position,
+        to: { x: -3, y: -3, z: -7 },
+        ease: TWEEN.Easing.Quartic.InOut
     }
 }
 
-const boxDownProps = {
-    position: {
-        duration: 250,
-        from: bigRooms[0].position,
-        to: { y: 1 },
-        ease: TWEEN.Easing.Linear.None
-    }
+const animCamUpPos = new TWEEN.Tween(camUpProps.position.from)
+    .to(camUpProps.position.to, camUpProps.position.duration)
+    .easing(camUpProps.position.ease)
+    .onStart(() => animCamUpRot)
+
+const animCamUpRot = new TWEEN.Tween(camUpProps.rotation.from)
+    .to(camUpProps.rotation.to, camUpProps.rotation.duration)
+    .easing(camUpProps.rotation.ease)
+/**
+ * Controls
+ */
+
+canvas.onclick = () => {
+    animCamUpPos.start()
 }
-
-const boxUpLayerProps = {
-    position: {
-        duration: 250,
-        from: bigRooms[1].position,
-        to: { y: -0.5 },
-        ease: TWEEN.Easing.Linear.None
-    }
-}
-
-const boxDownLayerProps = {
-    position: {
-        duration: 250,
-        from: bigRooms[1].position,
-        to: { y: 0.5 },
-        ease: TWEEN.Easing.Linear.None
-    }
-}
-
-const boxDownPos = new TWEEN.Tween(boxDownProps.position.from)
-    .to(boxDownProps.position.to, boxDownProps.position.duration)
-    .easing(boxDownProps.position.ease)
-
-const boxUpPos = new TWEEN.Tween(boxUpProps.position.from)
-    .to(boxUpProps.position.to, boxUpProps.position.duration)
-    .easing(boxUpProps.position.ease)
-    .start()
-
-const boxDownLayerPos = new TWEEN.Tween(boxDownLayerProps.position.from)
-    .to(boxDownLayerProps.position.to, boxDownLayerProps.position.duration)
-    .easing(boxDownLayerProps.position.ease)
-
-const boxUpLayerPos = new TWEEN.Tween(boxUpLayerProps.position.from)
-    .to(boxUpLayerProps.position.to, boxUpLayerProps.position.duration)
-    .easing(boxUpLayerProps.position.ease)
-    .start()
-
-boxDownPos.chain(boxUpPos)
-boxUpPos.chain(boxDownPos)
 
 /**
  * Animate
