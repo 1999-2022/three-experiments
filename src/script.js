@@ -26,9 +26,7 @@ const fontLoader = new FontLoader()
 let cameras = []
 
 cameras[0] = new THREE.PerspectiveCamera(80, size.aspectRatio)
-cameras[0].position.x = -1.71
-cameras[0].position.y = -0.05
-cameras[0].position.z = 10
+cameras[0].position.set(-0.5451088608774616, -0.002686677299137034, 0.0053350220787631445)
 
 scenes[0].add(cameras[0])
 
@@ -66,6 +64,16 @@ window.addEventListener('resize', () => {
  * Meshes
  */
 
+const cdGeo = new THREE.CylinderBufferGeometry(8.8, 2.2, 1, 11, 3, true, 0, 6.3)
+const cdMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    side: THREE.DoubleSide
+})
+const cd = new THREE.Mesh(cdGeo, cdMat)
+cd.rotation.z = Math.PI / 2
+scenes[0].add(cd)
+
 
 
 const tetraGeo = new THREE.DodecahedronBufferGeometry(3, 0)
@@ -92,18 +100,12 @@ scenes[0].add(tetraMesh)
 
 const camUpProps = {
     position: {
-        duration: 3250,
+        duration: 500,
         from: cameras[0].position,
-        to: {   x: -2.8627576758033344, 
-                y: -0.37053609774711294, 
-                z: 9.725940648075916 
+        to: { x: -12.454988160162193, 
+              y: -0.06138688315773049, 
+              z: 0.1218979209368164
             },
-        ease: TWEEN.Easing.Quartic.InOut
-    },
-    rotation: {
-        duration: 3250,
-        from: cameras[0].position,
-        to: { x: -3, y: -3, z: -7 },
         ease: TWEEN.Easing.Quartic.InOut
     }
 }
@@ -111,19 +113,14 @@ const camUpProps = {
 const animCamUpPos = new TWEEN.Tween(camUpProps.position.from)
     .to(camUpProps.position.to, camUpProps.position.duration)
     .easing(camUpProps.position.ease)
-    .onStart(() => animCamUpRot)
-
-const animCamUpRot = new TWEEN.Tween(camUpProps.rotation.from)
-    .to(camUpProps.rotation.to, camUpProps.rotation.duration)
-    .easing(camUpProps.rotation.ease)
-
+    
 /**
  * Controls
  */
 
-// canvas.onclick = () => {
-//     animCamUpPos.start()
-// }
+canvas.onclick = () => {
+    animCamUpPos.start()
+}
 
 /**
  * Animate
@@ -138,7 +135,6 @@ const tick = () => {
     //     y: cameras[0].position.y,
     //     z: cameras[0].position.z
     // })
-
     renderer.render(scenes[0], cameras[0])
     window.requestAnimationFrame(tick)
     TWEEN.update()
