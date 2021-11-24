@@ -2,6 +2,7 @@ import './style.css'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js"
 import TWEEN from "@tweenjs/tween.js"
 
 /**
@@ -16,7 +17,7 @@ const size = {
     height: window.innerHeight,
     aspectRatio: window.innerWidth / window.innerHeight
 }
-const fontLoader = new THREE.FontLoader()
+const fontLoader = new FontLoader()
 
 /**
  * Camera
@@ -65,25 +66,7 @@ window.addEventListener('resize', () => {
  * Meshes
  */
 
-const bigRooms = [
-    new THREE.Mesh(
-        new THREE.BoxBufferGeometry(5, 5, 5, 10, 5, 5),
-        new THREE.MeshBasicMaterial({
-            wireframe: true,
-            side: THREE.DoubleSide,
-            color: 0xffffff
-        })
-    ),
-    new THREE.Mesh(
-        new THREE.BoxBufferGeometry(5, 5, 5, 5, 10, 5),
-        new THREE.MeshBasicMaterial({
-            wireframe: true,
-            side: THREE.DoubleSide,
-            color: 0xffffff
-        })
-    )
-]
-bigRooms.forEach((mesh) => scenes[0].add(mesh))
+
 
 const tetraGeo = new THREE.DodecahedronBufferGeometry(3, 0)
 const tetraMat = new THREE.MeshBasicMaterial({
@@ -133,13 +116,14 @@ const animCamUpPos = new TWEEN.Tween(camUpProps.position.from)
 const animCamUpRot = new TWEEN.Tween(camUpProps.rotation.from)
     .to(camUpProps.rotation.to, camUpProps.rotation.duration)
     .easing(camUpProps.rotation.ease)
+
 /**
  * Controls
  */
 
-canvas.onclick = () => {
-    animCamUpPos.start()
-}
+// canvas.onclick = () => {
+//     animCamUpPos.start()
+// }
 
 /**
  * Animate
