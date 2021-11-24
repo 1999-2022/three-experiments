@@ -2,8 +2,6 @@ import './style.css'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js"
-import TWEEN from "@tweenjs/tween.js"
 
 /**
  * Base
@@ -11,23 +9,21 @@ import TWEEN from "@tweenjs/tween.js"
 
 const canvas = document.querySelector('canvas')
 const scenes = [new THREE.Scene(), new THREE.Scene()]
-scenes[0].background = new THREE.Color(0xff0000)
+scenes[0].background = new THREE.Color(0xf0f0f0)
 const size = {
     width: window.innerWidth,
     height: window.innerHeight,
     aspectRatio: window.innerWidth / window.innerHeight
 }
-const fontLoader = new FontLoader()
 
 /**
  * Camera
  */
-// Camera 1
 let cameras = []
 
+// Camera 1
 cameras[0] = new THREE.PerspectiveCamera(80, size.aspectRatio)
-cameras[0].position.set(-0.5451088608774616, -0.002686677299137034, 0.0053350220787631445)
-
+cameras[0].position.set(0, 0, 5)
 scenes[0].add(cameras[0])
 
 // Controls
@@ -61,66 +57,38 @@ window.addEventListener('resize', () => {
 })
 
 /**
+ * Lights
+ */
+
+ scenes[0].add( new THREE.AmbientLight( 0xf0f0f0 ) )
+ const light = new THREE.SpotLight( 0xffffff, 1.5 )
+ light.position.set( 0, 1500, 200 )
+ light.angle = Math.PI * 0.2
+ light.castShadow = true
+ light.shadow.camera.near = 200
+ light.shadow.camera.far = 2000
+ light.shadow.bias = - 0.000222
+ light.shadow.mapSize.width = 1024
+ light.shadow.mapSize.height = 1024
+ scenes[0].add( light )
+ const helper = new THREE.GridHelper( 2000, 100 );
+ helper.position.y = - 199;
+ helper.material.opacity = 0.25;
+ helper.material.transparent = true;
+ scenes[0].add( helper );
+
+/**
  * Meshes
  */
 
-const cdGeo = new THREE.CylinderBufferGeometry(8.8, 2.2, 1, 11, 3, true, 0, 6.3)
-const cdMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    side: THREE.DoubleSide
-})
-const cd = new THREE.Mesh(cdGeo, cdMat)
-cd.rotation.z = Math.PI / 2
-scenes[0].add(cd)
+ const planeGeometry = new THREE.PlaneGeometry( 2000, 2000 );
+ planeGeometry.rotateX( - Math.PI / 2 );
+ const planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
 
-
-
-const tetraGeo = new THREE.DodecahedronBufferGeometry(3, 0)
-const tetraMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true
-})
-const tetraMesh = new THREE.Mesh(tetraGeo, tetraMat)
-
-tetraMesh.position.y = 15
-tetraMesh.position.x = 3
-
-scenes[0].add(tetraMesh)
-
-/**
- * Animations
- */
-
-// const positions = {
-//     x: 0,
-//     y: 0,
-//     z: 0
-// }
-
-const camUpProps = {
-    position: {
-        duration: 500,
-        from: cameras[0].position,
-        to: { x: -12.454988160162193, 
-              y: -0.06138688315773049, 
-              z: 0.1218979209368164
-            },
-        ease: TWEEN.Easing.Quartic.InOut
-    }
-}
-
-const animCamUpPos = new TWEEN.Tween(camUpProps.position.from)
-    .to(camUpProps.position.to, camUpProps.position.duration)
-    .easing(camUpProps.position.ease)
-    
-/**
- * Controls
- */
-
-canvas.onclick = () => {
-    animCamUpPos.start()
-}
+ const plane = new THREE.Mesh( planeGeometry, planeMaterial );
+ plane.position.y = - 200;
+ plane.receiveShadow = true;
+ scenes[0].add( plane );
 
 /**
  * Animate
@@ -137,7 +105,6 @@ const tick = () => {
     // })
     renderer.render(scenes[0], cameras[0])
     window.requestAnimationFrame(tick)
-    TWEEN.update()
 }
 
 tick()
