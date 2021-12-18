@@ -1,8 +1,8 @@
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js"
-import TWEEN from "@tweenjs/tween.js"
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js'
 
 import './style.css'
 
@@ -11,9 +11,10 @@ import './style.css'
  */
 
 const canvas = document.querySelector('canvas')
-const scenes = [new THREE.Scene(), new THREE.Scene()]
-scenes[0].background = new THREE.Color(0x000000)
-const fontLoader = new FontLoader()
+
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0xf0f0f0)
+
 const size = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -24,15 +25,14 @@ const size = {
  * Camera
  */
 
-// Camera 1
-let cameras = []
+const camera = new THREE.PerspectiveCamera(80, size.aspectRatio)
+camera.position.set(0, 0, 5)
 
-cameras[0] = new THREE.PerspectiveCamera(60, size.aspectRatio, 1, 1000)
-cameras[0].position.set(1.065659852390964, 0.13341093432350543, 0.0016590048900783502)
-scenes[0].add(cameras[0])
+scene.add(camera)
 
 // Controls
-const controls = new OrbitControls(cameras[0], canvas)
+
+const controls = new OrbitControls(camera, canvas)
 
 /**
  * Renderer
@@ -56,78 +56,107 @@ window.addEventListener('resize', () => {
     size.width = window.innerWidth
     size.height = window.innerHeight
 
-    cameras[0].aspect = size.width / size.height
-    cameras[0].updateProjectionMatrix()
+    camera.aspect = size.width / size.height
+    camera.updateProjectionMatrix()
+
+    composer.setSize(size.width, size.height)
 
     renderer.setSize(size.width, size.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
 /**
+ * Lights
+ */
+
+scene.add( new THREE.AmbientLight(0xf0f0f0))
+const spotLight = new THREE.SpotLight(0xffffff, 1.5)
+
+spotLight.position.set(0, 1500, 200)
+spotLight.angle = Math.PI * 0.2
+spotLight.castShadow = true
+spotLight.shadow.camera.near = 200
+spotLight.shadow.camera.far = 2000
+spotLight.shadow.bias = - 0.000222
+spotLight.shadow.mapSize.width = 1024
+spotLight.shadow.mapSize.height = 1024
+
+scene.add(spotLight)
+
+// scene.add(
+//     new THREE.DirectionalLight(),
+//     new THREE.HemisphereLight() 
+// )
+
+/**
  * Meshes
  */
 
-const i = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(0, 100, 1, 5, 1, 1),
-    new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xffffff),
-        wireframe: true,
-        side: THREE.DoubleSide
-    })
+const boxesGroup = new THREE.Group()
+scene.add(boxesGroup)
+
+const boxGeo = new THREE.BoxBufferGeometry(
+    10,
+    10,
+    10
+)
+const boxMat = new THREE.MeshLambertMaterial({
+    color: 0xffffff
+})
+
+
+for (let i = 0; i < 25; i++) {
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat)
+
+    boxMesh.position.x = Math.random() * 400 - 200
+    boxMesh.position.y = Math.random() * 400 - 200
+    boxMesh.position.z = Math.random() * 400 - 200
+    boxMesh.rotation.x = Math.random()
+    boxMesh.rotation.y = Math.random()
+    boxMesh.rotation.z = Math.random()
+    
+    boxMesh.scale.setScalar(Math.random() * 10 + 2)
+    boxesGroup.add(boxMesh)
+}
+
+/**
+ * Post-FX
+ */
+
+const composer = new EffectComposer(renderer)
+
+const ssaoPass = new SSAOPass(
+    scene,
+    camera,
+    size.width,
+    size.height
 )
 
-const x = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(0, 100, 1, 5, 1, 1),
-    new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xffffff),
-        wireframe: true,
-        side: THREE.DoubleSide
-    })
-)
+console.log(ssaoPass)
 
-const y = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(0, 100, 1, 5, 1, 1),
-    new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xffffff),
-        wireframe: true,
-        side: THREE.DoubleSide
-    })
-)
+ssaoPass.kernelRadius = 16
+ssaoPass.minDistance = 0.005
+ssaoPass.maxDistance = 0.1
 
-const z = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(0, 100, 1, 5, 1, 1),
-    new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xffffff),
-        wireframe: true,
-        side: THREE.DoubleSide
-    })
-)
-
-x.position.y = 2.5
-y.position.y = 5
-z.position.y = 7.5
-
-scenes[0].add(i)
-scenes[0].add(x)
-scenes[0].add(y)
-scenes[0].add(z)
+composer.addPass(ssaoPass)
 
 /**
  * Animate
  */
-const clock = new THREE.Clock()
-const tick = () => {
-    const elapsedTime = clock.getElapsedTime()
 
-    i.rotation.y += 0.01
-    x.rotation.y += 0.01
-    y.rotation.y += 0.01 
-    z.rotation.y += 0.01
-    
+// const clock = new THREE.Clock()
+const tick = () => {
+    // const elapsedTime = clock.getElapsedTime()
+
     controls.update()
-    renderer.render(scenes[0], cameras[0])
+    // console.log({
+    //     x: camera.position.x,
+    //     y: camera.position.y,
+    //     z: camera.position.z
+    // })
+    composer.render()
+    renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
-    TWEEN.update()
 }
 
 tick()
