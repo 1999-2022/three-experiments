@@ -2,14 +2,17 @@ import './style.css'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js'
 
 /**
  * Base
  */
 
 const canvas = document.querySelector('canvas')
-const scenes = [new THREE.Scene(), new THREE.Scene()]
-scenes[0].background = new THREE.Color(0xf0f0f0)
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0xf0f0f0)
+
 const size = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -19,19 +22,20 @@ const size = {
 /**
  * Camera
  */
-let cameras = []
 
-// Camera 1
-cameras[0] = new THREE.PerspectiveCamera(80, size.aspectRatio)
-cameras[0].position.set(0, 0, 5)
-scenes[0].add(cameras[0])
+const camera = new THREE.PerspectiveCamera(80, size.aspectRatio)
+camera.position.set(0, 0, 5)
+
+scene.add(camera)
 
 // Controls
-const controls = new OrbitControls(cameras[0], canvas)
+
+const controls = new OrbitControls(camera, canvas)
 
 /**
  * Renderer
  */
+
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     powerPreference: 'high-performance',
@@ -45,12 +49,15 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * Resize
  */
+
 window.addEventListener('resize', () => {
     size.width = window.innerWidth
     size.height = window.innerHeight
 
-    cameras[0].aspect = size.width / size.height
-    cameras[0].updateProjectionMatrix()
+    camera.aspect = size.width / size.height
+    camera.updateProjectionMatrix()
+
+    composer.setSize(size.width, size.height)
 
     renderer.setSize(size.width, size.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -60,50 +67,93 @@ window.addEventListener('resize', () => {
  * Lights
  */
 
- scenes[0].add( new THREE.AmbientLight( 0xf0f0f0 ) )
- const light = new THREE.SpotLight( 0xffffff, 1.5 )
- light.position.set( 0, 1500, 200 )
- light.angle = Math.PI * 0.2
- light.castShadow = true
- light.shadow.camera.near = 200
- light.shadow.camera.far = 2000
- light.shadow.bias = - 0.000222
- light.shadow.mapSize.width = 1024
- light.shadow.mapSize.height = 1024
- scenes[0].add( light )
- const helper = new THREE.GridHelper( 2000, 100 );
- helper.position.y = - 199;
- helper.material.opacity = 0.25;
- helper.material.transparent = true;
- scenes[0].add( helper );
+scene.add( new THREE.AmbientLight(0xf0f0f0))
+const spotLight = new THREE.SpotLight(0xffffff, 1.5)
+
+spotLight.position.set(0, 1500, 200)
+spotLight.angle = Math.PI * 0.2
+spotLight.castShadow = true
+spotLight.shadow.camera.near = 200
+spotLight.shadow.camera.far = 2000
+spotLight.shadow.bias = - 0.000222
+spotLight.shadow.mapSize.width = 1024
+spotLight.shadow.mapSize.height = 1024
+
+scene.add(spotLight)
+
+// scene.add(
+//     new THREE.DirectionalLight(),
+//     new THREE.HemisphereLight() 
+// )
 
 /**
  * Meshes
  */
 
- const planeGeometry = new THREE.PlaneGeometry( 2000, 2000 );
- planeGeometry.rotateX( - Math.PI / 2 );
- const planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
+const boxesGroup = new THREE.Group()
+scene.add(boxesGroup)
 
- const plane = new THREE.Mesh( planeGeometry, planeMaterial );
- plane.position.y = - 200;
- plane.receiveShadow = true;
- scenes[0].add( plane );
+const boxGeo = new THREE.BoxBufferGeometry(
+    10,
+    10,
+    10
+)
+const boxMat = new THREE.MeshLambertMaterial({
+    color: 0xffffff
+})
+
+
+for (let i = 0; i < 25; i++) {
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat)
+
+    boxMesh.position.x = Math.random() * 400 - 200
+    boxMesh.position.y = Math.random() * 400 - 200
+    boxMesh.position.z = Math.random() * 400 - 200
+    boxMesh.rotation.x = Math.random()
+    boxMesh.rotation.y = Math.random()
+    boxMesh.rotation.z = Math.random()
+    
+    boxMesh.scale.setScalar(Math.random() * 10 + 2)
+    boxesGroup.add(boxMesh)
+}
+
+/**
+ * Post-FX
+ */
+
+const composer = new EffectComposer(renderer)
+
+const ssaoPass = new SSAOPass(
+    scene,
+    camera,
+    size.width,
+    size.height
+)
+
+console.log(ssaoPass)
+
+ssaoPass.kernelRadius = 16
+ssaoPass.minDistance = 0.005
+ssaoPass.maxDistance = 0.1
+
+composer.addPass(ssaoPass)
 
 /**
  * Animate
  */
-const clock = new THREE.Clock()
+
+// const clock = new THREE.Clock()
 const tick = () => {
-    const elapsedTime = clock.getElapsedTime()
+    // const elapsedTime = clock.getElapsedTime()
 
     controls.update()
     // console.log({
-    //     x: cameras[0].position.x,
-    //     y: cameras[0].position.y,
-    //     z: cameras[0].position.z
+    //     x: camera.position.x,
+    //     y: camera.position.y,
+    //     z: camera.position.z
     // })
-    renderer.render(scenes[0], cameras[0])
+    composer.render()
+    renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
 }
 
