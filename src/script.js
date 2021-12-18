@@ -1,15 +1,17 @@
-import './style.css'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js'
 
+import './style.css'
+
 /**
  * Base
  */
 
 const canvas = document.querySelector('canvas')
+
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0xf0f0f0)
 
